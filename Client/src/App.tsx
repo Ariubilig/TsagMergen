@@ -8,15 +8,16 @@ function App() {
   return (
     <>
 
-    <center>
 
-    <h1>Цагмэргэн</h1>
-    <p>In development</p>
+    <center>
+      <h1>Цагмэргэн</h1>
+      <p>In development</p>
     </center>
 
 
     </>
   )
+
 }
 
 
