@@ -8,8 +8,11 @@ function App() {
   return (
     <>
 
+    <center>
 
-    <h1>aaa</h1>
+    <h1>Цагмэргэн</h1>
+    <p>In development</p>
+    </center>
 
 
     </>
