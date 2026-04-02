@@ -1,4 +1,4 @@
-import { useDailyPlan } from "../../hooks/useDailyPlan";
+import { useDailyPlan, type Task } from "../../hooks/useDailyPlan";
 import "./DailyPlanPage.css";
 
 interface DailyPlanPageProps { userId: string; onBack?: () => void; }

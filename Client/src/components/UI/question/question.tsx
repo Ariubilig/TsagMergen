@@ -41,7 +41,7 @@ export default function Questions({ user, onComplete }: QuestionsProps) {
       .from('questions')
       .select('*')
       .order('question_order', { ascending: true })
-      .then(({ data, error }) => {
+      .then(({ data, error }: { data: any, error: any }) => {
         if (error) setError('Failed to load questions.')
         else setQuestions(data || [])
         setLoading(false)

@@ -107,7 +107,7 @@ function buildCalendar() {
 
 // ─── Component ───────────────────────────────────────────────────────────────
 
-export default function StudentDashboard({ user, homework, schedule = [], profile }: Props) {
+export default function StudentDashboard({ user, homework, schedule = [] }: Props) {
     const homeworks =
         homework && homework.length > 0
             ? homework.map((hw, i) => ({
