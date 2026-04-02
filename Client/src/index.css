@@ -1,0 +1,44 @@
+:root {
+  --color-bg: hsl(0, 0%, 90%);
+  
+  --textDefault: hsl(0, 0%, 0%);
+  --textL: hsl(0, 0%, 10%);
+  --textM: hsl(0, 0%, 20%);
+  --textS: hsl(0, 0%, 30%);
+  
+  --btn-bg: hsl(0, 0%, 0%);
+  --btn-text: hsl(0, 0%, 100%);
+  --btn-hover: hsl(0, 0%, 20%);
+
+  --link-color: hsl(0, 0%, 0%);
+  --link-hover: hsl(0, 0%, 30%);
+  
+  --divider: hsla(0, 0%, 40%);
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  background: var(--color-bg);
+  color: var(--textDefault);
+
+  line-height: 1;
+  position: relative;
+}
+
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgb(0, 0, 0);
+}
+::-webkit-scrollbar-thumb {
+  background: rgb(109, 106, 106);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgb(255, 0, 0);
+}
