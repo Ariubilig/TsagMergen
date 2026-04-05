@@ -1,35 +1,27 @@
-import { useState } from 'react'
-import { supabase } from './lib/supabase'
+import { AuthProvider, useAuth } from './components/auth/AuthProvider'
 import Auth from './components/auth/auth'
 import Questions from './components/UI/question/question'
 import DailyPlanPage from './components/pages/DailyPlanPage'
 
+function AppRoutes() {
+  const { user, view, setView, signOut } = useAuth()
 
-type View = 'auth' | 'questions' | 'plan'
+  if (view === 'loading')
+    return (
+      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f5f3ee' }}>
+        <p style={{ color: '#7a7268', fontFamily: 'Georgia, serif' }}>Ачааллаж байна…</p>
+      </div>
+    )
+
+  if (view === 'auth')      return <Auth />
+  if (view === 'questions') return <Questions user={{ id: user!.id }} onComplete={() => setView('plan')} />
+  return <DailyPlanPage userId={user!.id} onSignOut={signOut} />
+}
 
 export default function App() {
-
-  const [currentUser, setCurrentUser] = useState<any>(null)
-  const [view, setView] = useState<View>('auth')
-
-  const handleAuthSuccess = async (user: any) => {
-    setCurrentUser(user)
-    const { data: profile } = await supabase
-      .from('user_profiles')
-      .select('user_id')
-      .eq('user_id', user.user_id)
-      .maybeSingle()
-    setView(profile ? 'plan' : 'questions')
-  }
-
-  const handleQuestionsComplete = (updatedUser: any) => {
-    setCurrentUser(updatedUser)
-    setView('plan')
-  }
-
-  if (view === 'auth')      return <Auth onAuthSuccess={handleAuthSuccess} />
-  if (view === 'questions') return <Questions user={currentUser} onComplete={handleQuestionsComplete} />
-
-  return <DailyPlanPage userId={currentUser?.user_id} />
-
+  return (
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  )
 }

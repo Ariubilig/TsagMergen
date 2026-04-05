@@ -33,7 +33,6 @@ export function useDailyPlan() {
     try {
       const { data, error: err } = await supabase.functions.invoke("build-and-plan", {
         body: { user_id: userId, plan_date: planDate ?? new Date().toLocaleDateString("en-CA") },
-        headers: { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` },
       });
       if (err || data?.error) throw new Error(err?.message ?? data.error);
       setPlan(data as DailyPlan);

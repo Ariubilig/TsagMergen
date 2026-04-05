@@ -11,14 +11,14 @@ interface Question {
 }
 
 interface QuestionsProps {
-  user: any
-  onComplete: (updatedUser: any) => void
+  user: { id: string }
+  onComplete: () => void
 }
 
 const stressMap: Record<string, string> = { very_low: 'high', low: 'medium', medium: 'low', high: 'very_low' }
 const riskMap:   Record<string, string> = { very_easy: 'low', easy: 'low', medium: 'medium', hard: 'high' }
 
-const normalizeOptions = (options: any): { label: string; value: string }[] =>
+const normalizeOptions = (options: string[] | { label: string; value: string }[]): { label: string; value: string }[] =>
   Array.isArray(options)
     ? options.map((o) => (typeof o === 'string' ? { label: o, value: o } : o))
     : []
@@ -29,7 +29,7 @@ const isNumber = (cat: string) => cat === 'grade'
 export default function Questions({ user, onComplete }: QuestionsProps) {
   const [questions, setQuestions] = useState<Question[]>([])
   const [current, setCurrent]     = useState(0)
-  const [answers, setAnswers]     = useState<Record<string, any>>({})
+  const [answers, setAnswers]     = useState<Record<string, string>>({})
   const [loading, setLoading]     = useState(true)
   const [saving, setSaving]       = useState(false)
   const [error, setError]         = useState<string | null>(null)
@@ -41,7 +41,7 @@ export default function Questions({ user, onComplete }: QuestionsProps) {
       .from('questions')
       .select('*')
       .order('question_order', { ascending: true })
-      .then(({ data, error }: { data: any, error: any }) => {
+      .then(({ data, error }: { data: Question[] | null, error: { message: string } | null }) => {
         if (error) setError('Failed to load questions.')
         else setQuestions(data || [])
         setLoading(false)
@@ -64,7 +64,7 @@ export default function Questions({ user, onComplete }: QuestionsProps) {
     setSaving(true)
     setError(null)
 
-    const payload: Record<string, any> = { user_id: user.user_id }
+    const payload: Record<string, string> = { user_id: user.id }
 
     questions.forEach((q) => {
       const value = answers[q.id]
@@ -87,7 +87,7 @@ export default function Questions({ user, onComplete }: QuestionsProps) {
 
     const { error: err } = await supabase.from('user_profiles').upsert(payload, { onConflict: 'user_id' })
     if (err) { setError('Failed to save your profile. Please try again.'); setSaving(false) }
-    else onComplete(user)
+    else onComplete()
   }
 
   if (loading) return (

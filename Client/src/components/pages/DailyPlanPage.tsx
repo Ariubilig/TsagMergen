@@ -1,7 +1,7 @@
 import { useDailyPlan, type Task } from "../../hooks/useDailyPlan";
 import "./DailyPlanPage.css";
 
-interface DailyPlanPageProps { userId: string; onBack?: () => void; }
+interface DailyPlanPageProps { userId: string; onBack?: () => void; onSignOut?: () => void; }
 
 const stressLabel: Record<string, string> = { low: "Тайван", medium: "Дунд", high: "Өндөр" };
 const stressClass:  Record<string, string> = { low: "badge--low", medium: "badge--medium", high: "badge--high" };
@@ -32,7 +32,7 @@ function TaskCard({ task, index }: { task: Task; index: number }) {
   );
 }
 
-export default function DailyPlanPage({ userId, onBack }: DailyPlanPageProps) {
+export default function DailyPlanPage({ userId, onBack, onSignOut }: DailyPlanPageProps) {
   const { plan, loading, error, generatePlan, reset } = useDailyPlan();
   const today = todayISO();
 
@@ -40,7 +40,10 @@ export default function DailyPlanPage({ userId, onBack }: DailyPlanPageProps) {
     <div className="page">
       <header className="page-header">
         {onBack && <button className="btn-back" onClick={onBack}>← Буцах</button>}
-        <div className="header-eyebrow">Цагмэргэн</div>
+        <div className="header-top-row">
+          <div className="header-eyebrow">Цагмэргэн</div>
+          {onSignOut && <button className="btn-signout" onClick={onSignOut}>Гарах</button>}
+        </div>
         <h1 className="header-title">Өнөөдрийн төлөвлөгөө</h1>
         <p className="header-date">{formatDate(today)}</p>
       </header>

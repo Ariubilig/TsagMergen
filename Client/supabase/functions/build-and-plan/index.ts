@@ -35,30 +35,43 @@ serve(async (req) => {
 
     const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 
-    // ── 1. Resolve user → class + grade ────────────────────────────────
-    const { data: userRow, error: userErr } = await supabase
-      .from("demo_users")
-      .select("class_id, classes!demo_users_class_id_fkey(grade, class_section)")
-      .eq("user_id", user_id)
+    // ── 1. Resolve user → school, grade, class_section ──────────────────
+    const { data: studentRow, error: studentErr } = await supabase
+      .from("students")
+      .select("school_id, grade, class_section, schools!students_school_id_fkey(name)")
+      .eq("id", user_id)
       .single();
 
-    if (userErr || !userRow) return json({ error: "User not found", detail: userErr?.message }, 404);
+    if (studentErr || !studentRow) return json({ error: "Student not found", detail: studentErr?.message }, 404);
 
-    const class_id      = userRow.class_id as string;
-    const { grade, class_section } = userRow.classes as { grade: number; class_section: string };
-    const dow           = new Date(`${plan_date}T12:00:00Z`).getUTCDay();
+    const { school_id, grade, class_section } = studentRow;
+    const dow = new Date(`${plan_date}T12:00:00Z`).getUTCDay();
 
-    // ── 2. Parallel DB fetches ──────────────────────────────────────────
+    // ── 2. Resolve class_id from school + grade + section ───────────────
+    const { data: classRow } = await supabase
+      .from("classes")
+      .select("id")
+      .eq("school_id", school_id)
+      .eq("grade", grade)
+      .eq("class_section", class_section)
+      .maybeSingle();
+
+    const class_id = classRow?.id;
+
+    // ── 3. Parallel DB fetches ──────────────────────────────────────────
     const [profileRes, homeworkRes, eventsRes, scheduleRes] = await Promise.all([
       supabase.from("user_profiles").select("*").eq("user_id", user_id).maybeSingle(),
       supabase.from("homework").select("*").eq("user_id", user_id).or("status.eq.pending,status.is.null").order("due_date", { ascending: true }),
       supabase.from("grade_events").select("*")
         .eq("grade_level", grade)
+        .eq("school_id", school_id)
         .or(`class_section.eq.${class_section},class_section.is.null`)
         .gte("event_date", plan_date)
         .lte("event_date", offsetDate(plan_date, 7))
         .order("event_date", { ascending: true }),
-      supabase.from("schedules").select("*").eq("class_id", class_id).eq("day_of_week", dow).order("period", { ascending: true }),
+      class_id
+        ? supabase.from("schedules").select("*").eq("class_id", class_id).eq("day_of_week", dow).order("period", { ascending: true })
+        : Promise.resolve({ data: [], error: null }),
     ]);
 
     const dbError = profileRes.error || homeworkRes.error || eventsRes.error || scheduleRes.error;
@@ -69,7 +82,7 @@ serve(async (req) => {
     const events   = eventsRes.data   ?? [];
     const schedule = scheduleRes.data ?? [];
 
-    // ── 3. Build prompt ─────────────────────────────────────────────────
+    // ── 4. Build prompt ─────────────────────────────────────────────────
     const todayDow = new Date(`${plan_date}T12:00:00Z`).toLocaleDateString("en-US", { weekday: "long" });
 
     const prompt = 
@@ -127,7 +140,7 @@ serve(async (req) => {
       "ai_message": "Short 1–2 sentence motivational message. Personal, warm, Mongolian."
     }`;
 
-    // ── 4. Call OpenAI ──────────────────────────────────────────────────
+    // ── 5. Call OpenAI ──────────────────────────────────────────────────
     const aiRes = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
@@ -153,7 +166,7 @@ serve(async (req) => {
       return json({ error: "AI returned invalid JSON", raw: rawContent }, 500);
     }
 
-    // ── 5. Persist plan ─────────────────────────────────────────────────
+    // ── 6. Persist plan ─────────────────────────────────────────────────
     const { error: upsertErr } = await supabase.from("ai_plans").upsert({
       user_id,
       plan_date,

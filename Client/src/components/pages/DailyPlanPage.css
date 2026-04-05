@@ -39,6 +39,34 @@ body {
   text-align: center;
 }
 
+.header-top-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  position: relative;
+}
+
+.btn-signout {
+  position: absolute;
+  right: 0;
+  background: transparent;
+  color: var(--ink-soft);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: "DM Sans", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-signout:hover {
+  border-color: var(--red);
+  color: var(--red);
+}
+
 .header-eyebrow {
   font-family: "DM Sans", sans-serif;
   font-size: 11px;
