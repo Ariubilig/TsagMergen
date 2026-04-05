@@ -24,21 +24,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [view, setView] = useState<View>('loading')
 
   useEffect(() => {
+    let mounted = true
+
     const resolve = async (u: User | null) => {
+      if (!mounted) return
       if (!u) { setUser(null); setView('auth'); return }
+
       setUser(u)
-      const { data } = await supabase
-        .from('user_profiles')
-        .select('user_id')
-        .eq('user_id', u.id)
-        .maybeSingle()
-      setView(data ? 'plan' : 'questions')
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('user_id')
+          .eq('user_id', u.id)
+          .maybeSingle()
+
+        if (!mounted) return
+        if (error) { setView('questions'); return }
+        setView(data ? 'plan' : 'questions')
+      } catch {
+        if (mounted) setView('questions')
+      }
     }
 
-    supabase.auth.getSession().then(({ data: { session } }) => resolve(session?.user ?? null))
+    // Use only onAuthStateChange — it fires INITIAL_SESSION on load
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => { resolve(session?.user ?? null) }
+    )
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_e, s) => resolve(s?.user ?? null))
-    return () => subscription.unsubscribe()
+    // Fallback: if onAuthStateChange doesn't fire within 3s, check manually
+    const timeout = setTimeout(() => {
+      if (mounted && view === 'loading') {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          resolve(session?.user ?? null)
+        })
+      }
+    }, 3000)
+
+    return () => {
+      mounted = false
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   const signOut = async () => { await supabase.auth.signOut() }
