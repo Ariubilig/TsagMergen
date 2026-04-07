@@ -3,7 +3,10 @@ import Auth from './components/auth/auth'
 import Questions from './components/UI/question/question'
 import DailyPlanPage from './components/pages/DailyPlanPage'
 
+
 function AppRoutes() {
+
+  
   const { user, view, setView, signOut } = useAuth()
 
   if (view === 'loading')
@@ -16,12 +19,16 @@ function AppRoutes() {
   if (view === 'auth')      return <Auth />
   if (view === 'questions') return <Questions user={{ id: user!.id }} onComplete={() => setView('plan')} />
   return <DailyPlanPage userId={user!.id} onSignOut={signOut} />
+
 }
 
 export default function App() {
+
+
   return (
     <AuthProvider>
       <AppRoutes />
     </AuthProvider>
   )
+
 }

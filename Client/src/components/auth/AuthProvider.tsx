@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect, type ReactNode } from '
 import { supabase } from '../../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
+
 type View = 'loading' | 'auth' | 'questions' | 'plan'
 
 interface AuthCtx {
@@ -19,7 +20,9 @@ export function useAuth() {
   return ctx
 }
 
+
 export function AuthProvider({ children }: { children: ReactNode }) {
+
   const [user, setUser] = useState<User | null>(null)
   const [view, setView] = useState<View>('loading')
 
@@ -70,4 +73,5 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signOut = async () => { await supabase.auth.signOut() }
 
   return <Ctx.Provider value={{ user, view, setView, signOut }}>{children}</Ctx.Provider>
+  
 }

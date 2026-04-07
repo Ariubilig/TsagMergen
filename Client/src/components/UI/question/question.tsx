@@ -134,7 +134,7 @@ export default function Questions({ user, onComplete }: QuestionsProps) {
                   className={`q-option ${currentAnswer === opt.value ? 'q-option-selected' : ''}`}
                   onClick={() => handleSelect(opt.value)}
                 >
-                  {currentAnswer === opt.value && <span className="q-check">✓</span>}
+                  {currentAnswer === opt.value}
                   {opt.label}
                 </button>
               ))}

@@ -167,11 +167,6 @@
   background: #3a3028;
   border-color: #3a3028;
 }
-.q-check {
-  font-size: 0.8rem;
-  color: #c9d8b6;
-  flex-shrink: 0;
-}
 
 /* ─── Text/time input ─── */
 .q-input-wrap {
