@@ -14,6 +14,14 @@ interface QuestionsProps {
   user: { id: string }
   onComplete: () => void
 }
+interface Question {
+  id: string
+  question_order: number
+  question_text: string
+  category: string
+  sub_category: string | null   // add this
+  options: string[] | { label: string; value: string }[]
+}
 
 const stressMap: Record<string, string> = { very_low: 'high', low: 'medium', medium: 'low', high: 'very_low' }
 const riskMap:   Record<string, string> = { very_easy: 'low', easy: 'low', medium: 'medium', hard: 'high' }
@@ -76,10 +84,9 @@ export default function Questions({ user, onComplete }: QuestionsProps) {
         case 'reminder_tone':       payload.reminder_tone       = value; break
         case 'schedule': {
           const t = value.length === 5 ? `${value}:00` : value
-          const text = q.question_text.toLowerCase()
-          if (text.includes('home') || text.includes('arrive') || text.includes('гэртээ'))      payload.home_arrival_time = t
-          else if (text.includes('study') || text.includes('start') || text.includes('суралц')) payload.study_start_time  = t
-          else if (text.includes('sleep') || text.includes('bed')   || text.includes('унт'))    payload.sleep_time        = t
+          if (q.sub_category === 'home_arrival_time') payload.home_arrival_time = t
+          else if (q.sub_category === 'study_start_time') payload.study_start_time = t
+          else if (q.sub_category === 'sleep_time')       payload.sleep_time = t
           break
         }
       }

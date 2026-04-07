@@ -1,13 +1,15 @@
+import { Routes, Route, Navigate, useNavigate  } from 'react-router-dom'
 import { AuthProvider, useAuth } from './components/auth/AuthProvider'
-import Auth from './components/auth/auth'
+import AuthForm from './components/auth/AuthForm'
 import Questions from './components/UI/question/question'
 import DailyPlanPage from './components/pages/DailyPlanPage'
 
 
 function AppRoutes() {
 
-  
+
   const { user, view, setView, signOut } = useAuth()
+  const navigate = useNavigate()
 
   if (view === 'loading')
     return (
@@ -16,9 +18,16 @@ function AppRoutes() {
       </div>
     )
 
-  if (view === 'auth')      return <Auth />
-  if (view === 'questions') return <Questions user={{ id: user!.id }} onComplete={() => setView('plan')} />
-  return <DailyPlanPage userId={user!.id} onSignOut={signOut} />
+  return (
+
+    <Routes>
+      <Route path="/auth"      element={!user ? <AuthForm /> : <Navigate to="/plan" replace />} />
+      <Route path="/questions" element={user ? <Questions user={{ id: user.id }} onComplete={() => navigate('/plan')} /> : <Navigate to="/auth" replace />} />
+      <Route path="/plan"      element={user ? <DailyPlanPage userId={user.id} onSignOut={signOut} /> : <Navigate to="/auth" replace />} />
+      <Route path="*"          element={<Navigate to={user ? '/plan' : '/auth'} replace />} />
+    </Routes>
+    
+  )
 
 }
 

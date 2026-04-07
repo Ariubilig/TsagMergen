@@ -2,10 +2,13 @@ import './auth.css'
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '../../lib/supabase'
 
+
 type Mode = 'signin' | 'signup'
 interface School { id: string; name: string; city: string | null }
 
-export default function Auth() {
+
+export default function AuthForm() {
+
   const [mode, setMode] = useState<Mode>('signin')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -82,6 +85,7 @@ export default function Auth() {
   }
 
   return (
+
     <div className="auth-page">
       <div className="auth-card">
         <h1 className="auth-app-title">Цагмэргэн</h1>
@@ -156,5 +160,7 @@ export default function Auth() {
         </form>
       </div>
     </div>
+    
   )
+
 }

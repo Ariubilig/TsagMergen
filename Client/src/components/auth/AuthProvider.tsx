@@ -1,14 +1,11 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
-
-type View = 'loading' | 'auth' | 'questions' | 'plan'
-
 interface AuthCtx {
   user: User | null
-  view: View
-  setView: (v: View) => void
+  loading: boolean
   signOut: () => Promise<void>
 }
 
@@ -20,43 +17,46 @@ export function useAuth() {
   return ctx
 }
 
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-
   const [user, setUser] = useState<User | null>(null)
-  const [view, setView] = useState<View>('loading')
+  const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
 
   useEffect(() => {
     let mounted = true
 
     const resolve = async (u: User | null) => {
       if (!mounted) return
-      if (!u) { setUser(null); setView('auth'); return }
+      if (!u) {
+        setUser(null)
+        setLoading(false)
+        navigate('/auth', { replace: true })
+        return
+      }
 
       setUser(u)
       try {
-        const { data, error } = await supabase
+        const { data } = await supabase
           .from('user_profiles')
           .select('user_id')
           .eq('user_id', u.id)
           .maybeSingle()
 
         if (!mounted) return
-        if (error) { setView('questions'); return }
-        setView(data ? 'plan' : 'questions')
+        navigate(data ? '/plan' : '/questions', { replace: true })
       } catch {
-        if (mounted) setView('questions')
+        if (mounted) navigate('/questions', { replace: true })
+      } finally {
+        if (mounted) setLoading(false)
       }
     }
 
-    // Use only onAuthStateChange — it fires INITIAL_SESSION on load
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event, session) => { resolve(session?.user ?? null) }
     )
 
-    // Fallback: if onAuthStateChange doesn't fire within 3s, check manually
     const timeout = setTimeout(() => {
-      if (mounted && view === 'loading') {
+      if (mounted && loading) {
         supabase.auth.getSession().then(({ data: { session } }) => {
           resolve(session?.user ?? null)
         })
@@ -70,8 +70,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [])
 
-  const signOut = async () => { await supabase.auth.signOut() }
+  const signOut = async () => {
+    await supabase.auth.signOut()
+    navigate('/auth', { replace: true })
+  }
 
-  return <Ctx.Provider value={{ user, view, setView, signOut }}>{children}</Ctx.Provider>
-  
+  return <Ctx.Provider value={{ user, loading, signOut }}>{children}</Ctx.Provider>
 }
